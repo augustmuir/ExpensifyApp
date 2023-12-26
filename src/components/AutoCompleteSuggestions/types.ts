@@ -20,6 +20,9 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
     /** The index of the highlighted suggestion */
     highlightedSuggestionIndex: number;
 
+    /** Fired when the user clicks outside the suggestion box (native) */
+    onClose?: () => void;
+
     /** Fired when the user selects a suggestion */
     onSelect: (index: number) => void;
 

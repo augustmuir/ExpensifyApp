@@ -17,6 +17,9 @@ type EmojiSuggestionsProps = {
     /** Array of suggested emoji */
     emojis: SimpleEmoji[];
 
+    /** Fired when the user clicks outside the suggestion box (native) */
+    onClose?: () => void;
+
     /** Fired when the user selects an emoji */
     onSelect: (index: number) => void;
 
@@ -41,7 +44,7 @@ type EmojiSuggestionsProps = {
  */
 const keyExtractor = (item: SimpleEmoji, index: number): string => `${item.name}+${index}}`;
 
-function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferredSkinToneIndex, highlightedEmojiIndex = 0, measureParentContainer = () => {}}: EmojiSuggestionsProps) {
+function EmojiSuggestions({emojis, onClose, onSelect, prefix, isEmojiPickerLarge, preferredSkinToneIndex, highlightedEmojiIndex = 0, measureParentContainer = () => {}}: EmojiSuggestionsProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     /**
@@ -82,6 +85,7 @@ function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferr
             keyExtractor={keyExtractor}
             highlightedSuggestionIndex={highlightedEmojiIndex}
             onSelect={onSelect}
+            onClose={onClose}
             isSuggestionPickerLarge={isEmojiPickerLarge}
             accessibilityLabelExtractor={keyExtractor}
             measureParentContainer={measureParentContainer}

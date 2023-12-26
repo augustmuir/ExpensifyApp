@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {withPersonalDetails} from '@components/OnyxProvider';
@@ -22,6 +22,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -276,6 +277,11 @@ function ReportActionsList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
+    // Emit tap events for Portals (ReportActionsList.js) to handle
+    const handleGestureTap = () => {
+        DeviceEventEmitter.emit('InvertedFlatListTapDetected');
+    };
+
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
@@ -445,6 +451,10 @@ function ReportActionsList({
         );
     }, [isLoadingNewerReportActions, isOffline]);
 
+    const tapGesture = Gesture.Tap().numberOfTaps(1).onEnd(() => {
+        runOnJS(handleGestureTap)();
+    });
+
     return (
         <>
             <FloatingMessageCounter
@@ -452,28 +462,30 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
-                <InvertedFlatList
-                    accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    ref={reportScrollManager.ref}
-                    testID="report-actions-list"
-                    style={styles.overscrollBehaviorContain}
-                    data={sortedReportActions}
-                    renderItem={renderItem}
-                    contentContainerStyle={contentContainerStyle}
-                    keyExtractor={keyExtractor}
-                    initialNumToRender={initialNumToRender}
-                    onEndReached={loadOlderChats}
-                    onEndReachedThreshold={0.75}
-                    onStartReached={loadNewerChats}
-                    onStartReachedThreshold={0.75}
-                    ListFooterComponent={listFooterComponent}
-                    ListHeaderComponent={listHeaderComponent}
-                    keyboardShouldPersistTaps="handled"
-                    onLayout={onLayoutInner}
-                    onScroll={trackVerticalScrolling}
-                    onScrollToIndexFailed={() => {}}
-                    extraData={extraData}
-                />
+                <GestureDetector gesture={tapGesture}>
+                    <InvertedFlatList
+                        accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                        ref={reportScrollManager.ref}
+                        testID="report-actions-list"
+                        style={styles.overscrollBehaviorContain}
+                        data={sortedReportActions}
+                        renderItem={renderItem}
+                        contentContainerStyle={contentContainerStyle}
+                        keyExtractor={keyExtractor}
+                        initialNumToRender={initialNumToRender}
+                        onEndReached={loadOlderChats}
+                        onEndReachedThreshold={0.75}
+                        onStartReached={loadNewerChats}
+                        onStartReachedThreshold={0.75}
+                        ListFooterComponent={listFooterComponent}
+                        ListHeaderComponent={listHeaderComponent}
+                        keyboardShouldPersistTaps="handled"
+                        onLayout={onLayoutInner}
+                        onScroll={trackVerticalScrolling}
+                        onScrollToIndexFailed={() => {}}
+                        extraData={extraData}
+                    />
+                </GestureDetector>
             </Animated.View>
         </>
     );
